@@ -19,6 +19,21 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Dziennik ruchu w konsoli: godzina, urządzenie, zapytanie, status, czas odpowiedzi (tylko /api, bez OPTIONS)
+app.use((req, res, next) => {
+  if (!req.path.startsWith('/api') || req.method === 'OPTIONS') return next();
+  const start = Date.now();
+  res.on('finish', () => {
+    const ua = req.get('user-agent') || '';
+    const urzadzenie = /iPhone|iPad/.test(ua) ? 'iPhone' : /Android/.test(ua) ? 'Android'
+      : /Mozilla/.test(ua) ? 'przeglądarka' : 'inne';
+    const godz = new Date().toLocaleTimeString('pl-PL');
+    const kto = req.body?.pseudonim ? ` (${req.body.pseudonim})` : '';
+    console.log(`${godz}  ${urzadzenie.padEnd(12)} ${req.method.padEnd(6)} ${req.originalUrl}${kto}  → ${res.statusCode}  ${Date.now() - start} ms`);
+  });
+  next();
+});
+
 // Dokumentacja OpenAPI: specyfikacja w openapi.yaml, podgląd Swagger UI pod /api-docs
 const fs = require('fs');
 const path = require('path');

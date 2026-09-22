@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Pomiary</string>
+    <string name="title_activity_main">Pomiary</string>
+    <string name="package_name">pl.pomiary.wysilkowe</string>
+    <string name="custom_url_scheme">pl.pomiary.wysilkowe</string>
+</resources>
