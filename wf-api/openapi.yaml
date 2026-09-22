@@ -1,0 +1,286 @@
+openapi: 3.0.3
+info:
+  title: Pomiary Wysiłkowe – API
+  version: 1.0.0
+  license:
+    name: ISC
+  description: |
+    REST API aplikacji do rejestrowania parametrów fizjologicznych podczas wysiłku.
+    Baza: SQL Server (`PomiaryDB`). Uwierzytelnianie: brak – użytkownik identyfikowany pseudonimem.
+
+    **Zasady:**
+    - jeden pomiar na użytkownika dziennie – ponowny zapis w tym samym dniu nadpisuje pomiar,
+    - pomiar może usunąć jego właściciel albo admin (wuefista).
+# API nie ma uwierzytelniania - jawnie: brak wymagań bezpieczeństwa
+security: []
+servers:
+  - url: /api
+    description: ten sam serwer
+tags:
+  - name: Komórki
+    description: Komórki organizacyjne i osoby w nich
+  - name: Użytkownicy
+    description: Logowanie pseudonimem i dane użytkownika
+  - name: Pomiary
+    description: Pomiary fizjologiczne (jeden na dzień)
+
+paths:
+  /komorki:
+    get:
+      tags: [Komórki]
+      summary: Lista komórek organizacyjnych
+      description: Posortowana alfabetycznie, z liczbą osób (rola `user`) w każdej komórce.
+      operationId: getKomorki
+      responses:
+        '200':
+          description: Lista komórek
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Komorka' }
+
+  /komorki/{id}/uzytkownicy:
+    get:
+      tags: [Komórki]
+      summary: Osoby w komórce (panel admina)
+      description: Użytkownicy z rolą `user` w danej komórce, z liczbą pomiarów i datą ostatniego.
+      operationId: getOsobyWKomorce
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Lista osób
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/OsobaWKomorce' }
+
+  /login:
+    post:
+      tags: [Użytkownicy]
+      summary: Logowanie pseudonimem
+      description: |
+        Zwraca użytkownika o podanym pseudonimie. Jeśli nie istnieje – tworzy go z rolą `user`
+        w podanej komórce. Dla istniejących użytkowników (także admina) `komorkaId` jest ignorowane.
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Logowanie' }
+            examples:
+              nowy:
+                summary: Nowy użytkownik
+                value: { pseudonim: kowal, komorkaId: 1 }
+              admin:
+                summary: Wuefista
+                value: { pseudonim: wuefista }
+      responses:
+        '200':
+          description: Zalogowany (lub utworzony) użytkownik
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Uzytkownik' }
+        '400': { $ref: '#/components/responses/Blad400' }
+
+  /uzytkownicy/{id}:
+    get:
+      tags: [Użytkownicy]
+      summary: Dane użytkownika
+      operationId: getUzytkownik
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Użytkownik
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Uzytkownik' }
+        '404': { $ref: '#/components/responses/Blad404' }
+
+  /pomiary:
+    post:
+      tags: [Pomiary]
+      summary: Zapis dzisiejszego pomiaru
+      description: |
+        Jeden pomiar dziennie: jeśli użytkownik ma już dziś pomiar, zostaje on **nadpisany**
+        (pole `Nadpisany: true`), w przeciwnym razie tworzony jest nowy.
+        Wymagane jest co najmniej jedno pole pomiarowe; puste pola zapisywane są jako `null`.
+      operationId: zapiszPomiar
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NowyPomiar' }
+      responses:
+        '200':
+          description: Zapisany pomiar
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PomiarZapisany' }
+        '400': { $ref: '#/components/responses/Blad400' }
+
+  /pomiary/{id}:
+    get:
+      tags: [Pomiary]
+      summary: Pomiary użytkownika
+      description: Wszystkie pomiary użytkownika posortowane rosnąco po dacie.
+      operationId: getPomiary
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Id **użytkownika**
+          schema: { type: integer, example: 5 }
+      responses:
+        '200':
+          description: Lista pomiarów
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Pomiar' }
+    delete:
+      tags: [Pomiary]
+      summary: Usunięcie pomiaru
+      description: Usunąć może właściciel pomiaru albo użytkownik z rolą `admin`.
+      operationId: usunPomiar
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Id **pomiaru**
+          schema: { type: integer, example: 120 }
+        - name: uzytkownikId
+          in: query
+          required: true
+          description: Id osoby, która usuwa pomiar
+          schema: { type: integer, example: 5 }
+      responses:
+        '200':
+          description: Usunięto
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean, example: true }
+        '400': { $ref: '#/components/responses/Blad400' }
+        '403': { $ref: '#/components/responses/Blad403' }
+        '404': { $ref: '#/components/responses/Blad404' }
+
+components:
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer, example: 1 }
+
+  responses:
+    Blad400:
+      description: Błędne dane (np. wartość spoza zakresu)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Blad' }
+          example: { error: 'SpO₂: dozwolony zakres 70–100.' }
+    Blad403:
+      description: Brak uprawnień
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Blad' }
+          example: { error: Możesz usuwać tylko swoje pomiary. }
+    Blad404:
+      description: Nie znaleziono
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Blad' }
+          example: { error: Nie ma takiego pomiaru. }
+
+  schemas:
+    Blad:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string }
+
+    Komorka:
+      type: object
+      properties:
+        Id: { type: integer, example: 1 }
+        Nazwa: { type: string, example: Pluton 1 }
+        LiczbaOsob: { type: integer, example: 2 }
+
+    Rola:
+      type: string
+      enum: [user, admin]
+
+    Uzytkownik:
+      type: object
+      properties:
+        Id: { type: integer, example: 5 }
+        Pseudonim: { type: string, maxLength: 50, example: kowal }
+        KomorkaId: { type: integer, nullable: true, example: 1 }
+        Rola: { $ref: '#/components/schemas/Rola' }
+        KomorkaNazwa:
+          type: string
+          nullable: true
+          description: Tylko w `GET /uzytkownicy/{id}`
+          example: Pluton 1
+
+    OsobaWKomorce:
+      allOf:
+        - $ref: '#/components/schemas/Uzytkownik'
+        - type: object
+          properties:
+            LiczbaPomiarow: { type: integer, example: 17 }
+            OstatniPomiar: { type: string, format: date-time, nullable: true }
+
+    Logowanie:
+      type: object
+      required: [pseudonim]
+      properties:
+        pseudonim: { type: string, minLength: 1, maxLength: 50 }
+        komorkaId:
+          type: integer
+          nullable: true
+          description: Wymagane tylko przy tworzeniu nowego użytkownika
+
+    Pomiar:
+      type: object
+      properties:
+        Id: { type: integer, example: 120 }
+        UzytkownikId: { type: integer, example: 5 }
+        Data: { type: string, format: date-time }
+        TetnoSpoczynek: { type: integer, nullable: true, example: 64, description: bpm }
+        TetnoWysilek: { type: integer, nullable: true, example: 150, description: bpm }
+        CisnienieSkurcz: { type: integer, nullable: true, example: 125, description: mmHg }
+        CisnienieRozkurcz: { type: integer, nullable: true, example: 80, description: mmHg }
+        SpO2: { type: integer, nullable: true, example: 98, description: '%' }
+        CzasMin: { type: integer, nullable: true, example: 40, description: minuty }
+        RPE: { type: integer, nullable: true, example: 14, description: skala Borga }
+
+    PomiarZapisany:
+      allOf:
+        - $ref: '#/components/schemas/Pomiar'
+        - type: object
+          properties:
+            Nadpisany:
+              type: boolean
+              description: '`true` – nadpisano dzisiejszy pomiar, `false` – utworzono nowy'
+
+    NowyPomiar:
+      type: object
+      required: [uzytkownikId]
+      description: Pola pomiarowe są opcjonalne (`null` = brak), ale co najmniej jedno musi być podane.
+      properties:
+        uzytkownikId: { type: integer, example: 5 }
+        tetnoSpoczynek: { type: integer, nullable: true, minimum: 30, maximum: 220, example: 64 }
+        tetnoWysilek: { type: integer, nullable: true, minimum: 30, maximum: 220, example: 150 }
+        cisnienieSkurcz: { type: integer, nullable: true, minimum: 70, maximum: 250, example: 125 }
+        cisnienieRozkurcz: { type: integer, nullable: true, minimum: 40, maximum: 150, example: 80 }
+        spo2: { type: integer, nullable: true, minimum: 70, maximum: 100, example: 98 }
+        czasMin: { type: integer, nullable: true, minimum: 1, maximum: 600, example: 40 }
+        rpe: { type: integer, nullable: true, minimum: 6, maximum: 20, example: 14 }

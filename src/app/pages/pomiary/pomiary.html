@@ -1,0 +1,98 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Moje pomiary</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="wyloguj()" title="Wyloguj">
+        <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="kontener">
+    <div class="data">
+      <div class="data-dzien">{{ dzis | date: 'dd.MM.yyyy' }}</div>
+      <div class="data-opis"><span class="dzien-tyg">{{ dzis | date: 'EEEE' }}</span> · {{ user()?.Pseudonim }}</div>
+    </div>
+
+    <!-- jeden pomiar na dzień -->
+    @if (dzisiejszy(); as d) {
+      <div class="status zapisany">
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        <div class="status-tekst">
+          <b>Dzisiejszy pomiar zapisany o {{ d.Data | date: 'HH:mm' }}</b>
+          <span>Możesz poprawić wartości – ponowny zapis nadpisze pomiar.</span>
+        </div>
+        <ion-button fill="clear" color="danger" size="small" (click)="usun()" title="Usuń dzisiejszy pomiar">
+          <ion-icon slot="start" name="trash-outline"></ion-icon>
+          Usuń
+        </ion-button>
+      </div>
+    } @else {
+      <div class="status">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        <div class="status-tekst">
+          <b>Brak dzisiejszego pomiaru</b>
+          <span>Wpisz wartości i zapisz – jeden pomiar na dzień.</span>
+        </div>
+      </div>
+    }
+
+    <table class="tabela">
+      <thead>
+        <tr>
+          <th>Parametr</th>
+          <th class="kol-wartosc">Wartość</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (p of parametry; track p.klucz) {
+          <tr [class.blad]="bledy()[p.klucz]">
+            <td>
+              <div class="nazwa">{{ p.nazwa }}</div>
+              <div class="zakres">{{ p.jednostka === '6–20' ? 'skala' : p.jednostka }} · {{ p.min }}–{{ p.max }}</div>
+            </td>
+            <td class="kol-wartosc">
+              <ion-input
+                type="number"
+                inputmode="numeric"
+                fill="outline"
+                [min]="p.min"
+                [max]="p.max"
+                [placeholder]="p.jednostka === '6–20' ? '6–20' : p.jednostka"
+                [ngModel]="wartosci()[p.klucz]"
+                (ngModelChange)="ustaw(p.klucz, $event)"
+                (keyup.enter)="zapisz()"
+                [attr.aria-label]="p.nazwa"
+              ></ion-input>
+              @if (bledy()[p.klucz]; as b) {
+                <div class="komunikat">{{ b }}</div>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+  </div>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <div class="akcje">
+      <ion-button fill="solid" (click)="zapisz()" [disabled]="!moznaZapisac()">
+        @if (zapisuje()) {
+          <ion-spinner name="crescent"></ion-spinner>
+        } @else {
+          <ion-icon slot="start" name="save-outline"></ion-icon>
+          {{ dzisiejszy() ? 'Nadpisz' : 'Zapisz' }}
+        }
+      </ion-button>
+      <ion-button fill="outline" (click)="wykres()">
+        <ion-icon slot="start" name="stats-chart-outline"></ion-icon>
+        Wykres
+      </ion-button>
+    </div>
+  </ion-toolbar>
+</ion-footer>

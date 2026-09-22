@@ -1,0 +1,65 @@
+.kontener {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+ion-segment {
+  margin-bottom: 16px;
+}
+
+.wykres {
+  position: relative;
+  height: 380px;
+}
+
+@media (max-width: 600px) {
+  .wykres {
+    height: 300px;
+  }
+}
+
+.pusto {
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--ion-color-medium);
+}
+
+.sekcja {
+  font-size: 1rem;
+  margin: 24px 0 10px;
+}
+
+.kafelki {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.kafelek {
+  border: 1px solid var(--ion-background-color-step-150, #ddd);
+  border-top: 4px solid;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.k-nazwa {
+  font-size: 0.8rem;
+  color: var(--ion-color-medium);
+}
+
+.k-wartosc {
+  font-size: 1.6rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.k-wartosc small {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--ion-color-medium);
+}
+
+.liczba {
+  color: var(--ion-color-medium);
+  font-size: 0.85rem;
+}

@@ -1,0 +1,55 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Pomiary Wysiłkowe</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="kontener">
+    <div class="naglowek">
+      <ion-icon name="pulse-outline" color="primary"></ion-icon>
+      <h1>Zaloguj się</h1>
+      <p>Wpisz pseudonim i wybierz swoją komórkę organizacyjną.</p>
+    </div>
+
+    <ion-list lines="full" class="formularz">
+      <ion-item>
+        <ion-input
+          label="Pseudonim"
+          labelPlacement="stacked"
+          placeholder="np. kowal"
+          [maxlength]="50"
+          autocomplete="off"
+          [(ngModel)]="pseudonim"
+          (keyup.enter)="zaloguj()"
+        ></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-select
+          label="Komórka organizacyjna"
+          labelPlacement="stacked"
+          placeholder="Wybierz komórkę"
+          interface="popover"
+          [(ngModel)]="komorkaId"
+        >
+          @for (k of komorki(); track k.Id) {
+            <ion-select-option [value]="k.Id">{{ k.Nazwa }}</ion-select-option>
+          }
+        </ion-select>
+      </ion-item>
+    </ion-list>
+
+    <ion-button expand="block" size="large" (click)="zaloguj()" [disabled]="!pseudonim.trim() || laduje()">
+      @if (laduje()) {
+        <ion-spinner name="crescent"></ion-spinner>
+      } @else {
+        <ion-icon slot="start" name="log-in-outline"></ion-icon>
+        Wejdź
+      }
+    </ion-button>
+
+    <ion-note class="podpowiedz">
+      Nowy pseudonim tworzy konto w wybranej komórce. Jeśli już masz konto, wybór komórki nie ma znaczenia. Po zalogowaniu urządzenie Cię zapamięta, więc nie musisz logować się ponownie.
+    </ion-note>
+  </div>
+</ion-content>

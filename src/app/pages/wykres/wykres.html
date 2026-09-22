@@ -1,0 +1,48 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="powrot()" text="Wróć"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Wykres{{ osoba() ? ' – ' + osoba()!.Pseudonim : '' }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="kontener">
+    <ion-segment [value]="grupa()" (ionChange)="zmienGrupe($event.detail.value)" scrollable>
+      @for (g of grupy; track g.id) {
+        <ion-segment-button [value]="g.id">
+          <ion-label>{{ g.nazwa }}</ion-label>
+        </ion-segment-button>
+      }
+    </ion-segment>
+
+    @if (laduje()) {
+      <div class="pusto"><ion-spinner></ion-spinner></div>
+    } @else if (pomiary().length === 0) {
+      <div class="pusto">Brak pomiarów – zapisz pierwszy, aby zobaczyć wykres.</div>
+    } @else {
+      <div class="wykres">
+        <canvas baseChart type="line" [data]="dane()" [options]="opcje"></canvas>
+      </div>
+
+      @if (ostatni(); as o) {
+        <h2 class="sekcja">Ostatni pomiar · {{ o.Data | date: 'dd.MM.yyyy HH:mm' }}</h2>
+        <div class="kafelki">
+          @for (p of parametryGrupy(); track p.klucz) {
+            <div class="kafelek" [style.border-top-color]="p.kolor">
+              <div class="k-nazwa">{{ p.nazwa }}</div>
+              <div class="k-wartosc">
+                {{ o[p.kolumna] ?? '–' }}
+                @if (o[p.kolumna] !== null && p.jednostka !== '6–20') {
+                  <small>{{ p.jednostka }}</small>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+      <p class="liczba">Łącznie pomiarów: {{ pomiary().length }}</p>
+    }
+  </div>
+</ion-content>

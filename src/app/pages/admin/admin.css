@@ -1,0 +1,200 @@
+.uklad {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) 1fr;
+  gap: 0;
+  min-height: 100%;
+}
+
+.osoby {
+  border-right: 1px solid var(--ion-background-color-step-150, #ddd);
+}
+
+.szczegoly {
+  padding: 0 16px 16px;
+  min-width: 0;
+}
+
+.sekcja {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ion-color-medium);
+  margin: 16px 16px 4px;
+}
+
+.licznik {
+  opacity: 0.6;
+  font-size: 0.85em;
+  margin-left: 4px;
+}
+
+ion-item.wybrana {
+  --background: var(--ion-color-primary-tint);
+  --color: var(--ion-color-primary-contrast);
+}
+
+ion-item.wybrana p {
+  color: inherit;
+}
+
+.szczegoly-naglowek {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.szczegoly-naglowek h2 {
+  flex: 1;
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.pusto {
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--ion-color-medium);
+}
+
+.przewijanie {
+  overflow-x: auto;
+}
+
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabela th {
+  font-size: 0.75rem;
+  color: var(--ion-color-medium);
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--ion-background-color-step-200, #ccc);
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
+.tabela td {
+  padding: 8px;
+  border-bottom: 1px solid var(--ion-background-color-step-100, #eee);
+}
+
+.tabela .num {
+  text-align: right;
+}
+
+.tabela .data {
+  white-space: nowrap;
+}
+
+/* karty pomiarów (telefon) */
+.karty {
+  display: none;
+}
+
+.karta {
+  border: 1px solid var(--ion-background-color-step-150, #ddd);
+  border-radius: 12px;
+  padding: 10px 12px 12px;
+  margin-bottom: 10px;
+}
+
+.karta-data {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  margin-bottom: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.karta-data {
+  align-items: center;
+}
+
+.karta-data .godz {
+  color: var(--ion-color-medium);
+  font-weight: 400;
+  margin-left: auto;
+}
+
+.karta-data .usun {
+  margin: -6px -8px -6px 4px;
+}
+
+.tabela td.akcja {
+  padding: 0;
+  width: 1%;
+}
+
+.karta-siatka {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 6px;
+}
+
+.pole {
+  border-left: 4px solid;
+  border-radius: 6px;
+  background: var(--ion-background-color-step-50, #f6f6f6);
+  padding: 4px 8px;
+}
+
+.pole.puste {
+  opacity: 0.45;
+}
+
+.pole-nazwa {
+  font-size: 0.72rem;
+  color: var(--ion-color-medium);
+}
+
+.pole-wartosc {
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.pole-wartosc small {
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: var(--ion-color-medium);
+}
+
+.wybor-komorki {
+  padding: 0 16px;
+}
+
+@media (min-width: 701px) {
+  .tylko-mobile {
+    display: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .uklad {
+    grid-template-columns: 1fr;
+  }
+
+  .osoby {
+    border-right: none;
+  }
+
+  .ukryj-mobile {
+    display: none;
+  }
+
+  .tylko-desktop,
+  .przewijanie {
+    display: none;
+  }
+
+  .karty {
+    display: block;
+  }
+
+  .szczegoly {
+    padding: 0 12px 12px;
+  }
+}

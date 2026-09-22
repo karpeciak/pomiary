@@ -1,0 +1,20 @@
+{
+  "name": "wf-api",
+  "version": "1.0.0",
+  "description": "REST API aplikacji Pomiary Wysiłkowe (Express + SQL Server)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "msnodesqlv8": "^5.5.0",
+    "mssql": "^12.7.2",
+    "swagger-ui-express": "^5.0.1",
+    "yaml": "^2.9.1"
+  }
+}

@@ -1,0 +1,46 @@
+# Buduje aplikację iOS (plik .ipa bez podpisu) na Macu w chmurze GitHuba.
+# Uruchomienie: GitHub → zakładka Actions → "iOS – plik IPA" → Run workflow.
+# Gotowy plik: na dole strony uruchomienia, sekcja Artifacts → Pomiary-ipa.
+# Podpisanie i instalacja na iPhonie: Sideloadly (Windows) z własnym Apple ID.
+name: iOS – plik IPA
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ios:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Zależności
+        run: npm ci
+
+      - name: Build frontendu i kopiowanie do projektu iOS
+        run: |
+          npx ng build
+          npx cap sync ios
+
+      - name: Kompilacja aplikacji (bez podpisu)
+        run: |
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
+            -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Pakowanie do .ipa
+        run: |
+          mkdir -p Payload
+          cp -R build/Build/Products/Release-iphoneos/App.app Payload/
+          zip -qry Pomiary.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Pomiary-ipa
+          path: Pomiary.ipa
+          retention-days: 14

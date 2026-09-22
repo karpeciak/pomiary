@@ -1,0 +1,11 @@
+/* Ionic: style bazowe, typografia i narzędzia */
+@import '@ionic/angular/css/core.css';
+@import '@ionic/angular/css/normalize.css';
+@import '@ionic/angular/css/structure.css';
+@import '@ionic/angular/css/typography.css';
+@import '@ionic/angular/css/padding.css';
+@import '@ionic/angular/css/text-alignment.css';
+@import '@ionic/angular/css/flex-utils.css';
+@import '@ionic/angular/css/display.css';
+/* ciemny motyw zgodnie z ustawieniem systemu */
+@import '@ionic/angular/css/palettes/dark.system.css';

@@ -1,0 +1,149 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Panel wuefisty</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="wyloguj()" title="Wyloguj">
+        <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+  <ion-toolbar class="tylko-desktop">
+    <ion-segment [value]="komorkaId()" (ionChange)="wybierzKomorke($event.detail.value)" scrollable>
+      @for (k of komorki(); track k.Id) {
+        <ion-segment-button [value]="k.Id">
+          <ion-label>{{ k.Nazwa }} <span class="licznik">{{ k.LiczbaOsob }}</span></ion-label>
+        </ion-segment-button>
+      }
+    </ion-segment>
+  </ion-toolbar>
+  <!-- na telefonie 10 zakładek się nie mieści - lista rozwijana -->
+  <ion-toolbar class="tylko-mobile">
+    <ion-select
+      class="wybor-komorki"
+      label="Komórka"
+      interface="action-sheet"
+      cancelText="Anuluj"
+      [value]="komorkaId()"
+      (ionChange)="wybierzKomorke($event.detail.value)"
+    >
+      @for (k of komorki(); track k.Id) {
+        <ion-select-option [value]="k.Id">{{ k.Nazwa }} ({{ k.LiczbaOsob }})</ion-select-option>
+      }
+    </ion-select>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="uklad">
+    <!-- krok 2: osoby -->
+    <section class="osoby" [class.ukryj-mobile]="osoba()">
+      <h2 class="sekcja">Osoby</h2>
+      @if (ladujeOsoby()) {
+        <div class="pusto"><ion-spinner></ion-spinner></div>
+      } @else if (osoby().length === 0) {
+        <div class="pusto">W tej komórce nie ma jeszcze nikogo.</div>
+      } @else {
+        <ion-list lines="full">
+          @for (o of osoby(); track o.Id) {
+            <ion-item button detail="true" (click)="wybierzOsobe(o)" [class.wybrana]="osoba()?.Id === o.Id">
+              <ion-icon slot="start" name="person-outline"></ion-icon>
+              <ion-label>
+                <h3>{{ o.Pseudonim }}</h3>
+                <p>
+                  @if (o.OstatniPomiar) {
+                    ostatni: {{ o.OstatniPomiar | date: 'dd.MM.yyyy' }}
+                  } @else {
+                    brak pomiarów
+                  }
+                </p>
+              </ion-label>
+              <ion-badge slot="end" [color]="o.LiczbaPomiarow ? 'primary' : 'medium'">{{ o.LiczbaPomiarow }}</ion-badge>
+            </ion-item>
+          }
+        </ion-list>
+      }
+    </section>
+
+    <!-- krok 3: pomiary wybranej osoby -->
+    <section class="szczegoly" [class.ukryj-mobile]="!osoba()">
+      @if (osoba(); as o) {
+        <div class="szczegoly-naglowek">
+          <ion-button fill="clear" size="small" class="tylko-mobile" (click)="osoba.set(null)">‹ Osoby</ion-button>
+          <h2>{{ o.Pseudonim }}</h2>
+          <ion-button (click)="wykres()" [disabled]="pomiary().length === 0">
+            <ion-icon slot="start" name="stats-chart-outline"></ion-icon>
+            Wykres
+          </ion-button>
+        </div>
+
+        @if (ladujePomiary()) {
+          <div class="pusto"><ion-spinner></ion-spinner></div>
+        } @else if (pomiary().length === 0) {
+          <div class="pusto">Ta osoba nie zapisała jeszcze pomiarów.</div>
+        } @else {
+          <!-- telefon: każdy pomiar jako karta -->
+          <div class="karty">
+            @for (m of pomiary(); track m.Id) {
+              <div class="karta">
+                <div class="karta-data">
+                  <span>{{ m.Data | date: 'dd.MM.yyyy' }}</span>
+                  <span class="godz">{{ m.Data | date: 'HH:mm' }}</span>
+                  <ion-button fill="clear" color="danger" size="small" class="usun" (click)="usunPomiar(m)" aria-label="Usuń pomiar">
+                    <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                  </ion-button>
+                </div>
+                <div class="karta-siatka">
+                  @for (p of parametry; track p.klucz) {
+                    <div class="pole" [style.border-left-color]="p.kolor" [class.puste]="m[p.kolumna] === null">
+                      <div class="pole-nazwa">{{ p.skrot }}</div>
+                      <div class="pole-wartosc">
+                        {{ m[p.kolumna] ?? '–' }}
+                        @if (m[p.kolumna] !== null && p.jednostka !== '6–20') {
+                          <small>{{ p.jednostka }}</small>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- komputer: tabela -->
+          <div class="przewijanie">
+            <table class="tabela">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  @for (p of parametry; track p.klucz) {
+                    <th class="num" [title]="p.nazwa">
+                      {{ p.skrot }}<br /><small>{{ p.jednostka === '6–20' ? '' : p.jednostka }}</small>
+                    </th>
+                  }
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (m of pomiary(); track m.Id) {
+                  <tr>
+                    <td class="data">{{ m.Data | date: 'dd.MM.yyyy HH:mm' }}</td>
+                    @for (p of parametry; track p.klucz) {
+                      <td class="num">{{ m[p.kolumna] ?? '–' }}</td>
+                    }
+                    <td class="akcja">
+                      <ion-button fill="clear" color="danger" size="small" (click)="usunPomiar(m)" title="Usuń pomiar">
+                        <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                      </ion-button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      } @else {
+        <div class="pusto">Wybierz osobę z listy, aby zobaczyć jej pomiary.</div>
+      }
+    </section>
+  </div>
+</ion-content>

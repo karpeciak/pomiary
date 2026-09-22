@@ -1,0 +1,123 @@
+.kontener {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.data {
+  text-align: center;
+  margin: 4px 0 20px;
+}
+
+.data-dzien {
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.data-opis {
+  color: var(--ion-color-medium);
+}
+
+.dzien-tyg {
+  text-transform: capitalize;
+}
+
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabela th {
+  text-align: left;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ion-color-medium);
+  padding: 0 8px 8px;
+  border-bottom: 1px solid var(--ion-background-color-step-150, #ddd);
+}
+
+.tabela td {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--ion-background-color-step-100, #eee);
+  vertical-align: middle;
+}
+
+.kol-wartosc {
+  width: 38%;
+  min-width: 120px;
+}
+
+.nazwa {
+  font-weight: 600;
+}
+
+.zakres {
+  font-size: 0.8rem;
+  color: var(--ion-color-medium);
+}
+
+.tabela ion-input {
+  --padding-start: 12px;
+  min-height: 44px;
+  font-variant-numeric: tabular-nums;
+}
+
+tr.blad ion-input {
+  --border-color: var(--ion-color-danger);
+  --highlight-color: var(--ion-color-danger);
+}
+
+.komunikat {
+  font-size: 0.75rem;
+  color: var(--ion-color-danger);
+  margin-top: 4px;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  border-radius: 10px;
+  border: 1px solid var(--ion-background-color-step-150, #ddd);
+}
+
+.status > ion-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+  color: var(--ion-color-medium);
+}
+
+.status.zapisany {
+  border-color: var(--ion-color-success);
+}
+
+.status.zapisany > ion-icon {
+  color: var(--ion-color-success);
+}
+
+.status-tekst {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9rem;
+}
+
+.status-tekst span {
+  font-size: 0.8rem;
+  color: var(--ion-color-medium);
+}
+
+.akcje {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  padding: 4px 12px;
+}
+
+.akcje ion-button {
+  flex: 1;
+  max-width: 220px;
+}
