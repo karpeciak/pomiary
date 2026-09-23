@@ -9,9 +9,9 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "ios": "ng build && cap sync ios",
-    "tunel": "\"%LOCALAPPDATA%\\Microsoft\\WindowsApps\\ngrok.exe\" http 3000 --url=causation-these-attendee.ngrok-free.dev",
+    "tunel": "scripts\\tunel.cmd",
     "android": "ng build && cap sync android",
-    "apk": "npm run android && android\build-apk.cmd"
+    "apk": "npm run android && android\\build-apk.cmd"
   },
   "private": true,
   "packageManager": "npm@11.19.0",
