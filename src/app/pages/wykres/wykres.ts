@@ -16,6 +16,20 @@ interface Grupa {
   kolumny: Parametr['kolumna'][];
 }
 
+interface Zakres {
+  id: string;
+  nazwa: string;
+  /** ile dni wstecz; null = wszystkie pomiary */
+  dni: number | null;
+}
+
+const ZAKRESY: Zakres[] = [
+  { id: 'tydzien', nazwa: 'Tydzień', dni: 7 },
+  { id: 'miesiac', nazwa: 'Miesiąc', dni: 30 },
+  { id: 'kwartal', nazwa: '3 miesiące', dni: 90 },
+  { id: 'wszystko', nazwa: 'Wszystko', dni: null },
+];
+
 const GRUPY: Grupa[] = [
   { id: 'wszystkie', nazwa: 'Wszystkie', kolumny: ['TetnoSpoczynek', 'TetnoWysilek', 'CisnienieSkurcz', 'CisnienieRozkurcz', 'SpO2'] },
   { id: 'tetno', nazwa: 'Tętno', kolumny: ['TetnoSpoczynek', 'TetnoWysilek'] },
@@ -44,28 +58,41 @@ export class WykresPage {
 
   readonly grupy = GRUPY;
   readonly grupa = signal('wszystkie');
+  readonly zakresy = ZAKRESY;
+  readonly zakres = signal('miesiac');
   readonly pomiary = signal<Pomiar[]>([]);
   readonly osoba = signal<Uzytkownik | null>(null);
   readonly laduje = signal(true);
 
   readonly powrot = computed(() => (this.api.user()?.Rola === 'admin' ? '/admin' : '/pomiary'));
 
-  readonly ostatni = computed(() => this.pomiary().at(-1) ?? null);
+  /** Pomiary z wybranego zakresu czasu. */
+  readonly wybrane = computed(() => {
+    const dni = ZAKRESY.find((z) => z.id === this.zakres())?.dni ?? null;
+    if (dni === null) return this.pomiary();
+    const od = new Date();
+    od.setDate(od.getDate() - dni);
+    od.setHours(0, 0, 0, 0);
+    return this.pomiary().filter((p) => new Date(p.Data) >= od);
+  });
+
+  readonly ostatni = computed(() => this.wybrane().at(-1) ?? null);
   readonly parametryGrupy = computed(() => {
     const g = GRUPY.find((x) => x.id === this.grupa())!;
     return PARAMETRY.filter((p) => g.kolumny.includes(p.kolumna));
   });
 
   readonly dane = computed<ChartConfiguration<'line'>['data']>(() => {
-    const lista = this.pomiary();
+    const lista = this.wybrane();
+    const zDniem = lista.length > 40; // przy wielu punktach sama data, bez godziny
     return {
-      labels: lista.map((p) => this.etykieta(p.Data)),
+      labels: lista.map((p) => this.etykieta(p.Data, !zDniem)),
       datasets: this.parametryGrupy().map((p) => ({
         label: `${p.nazwa} (${p.jednostka})`,
         data: lista.map((m) => m[p.kolumna]),
         borderColor: p.kolor,
         backgroundColor: p.kolor,
-        pointRadius: 4,
+        pointRadius: lista.length > 60 ? 0 : lista.length > 30 ? 2 : 4,
         pointHoverRadius: 6,
         tension: 0.25,
         spanGaps: true,
@@ -110,10 +137,15 @@ export class WykresPage {
     if (typeof v === 'string') this.grupa.set(v);
   }
 
-  private etykieta(iso: string): string {
+  zmienZakres(v: unknown): void {
+    if (typeof v === 'string') this.zakres.set(v);
+  }
+
+  private etykieta(iso: string, zGodzina: boolean): string {
     const d = new Date(iso);
     const dd = String(d.getDate()).padStart(2, '0');
     const mm = String(d.getMonth() + 1).padStart(2, '0');
+    if (!zGodzina) return `${dd}.${mm}`;
     const hh = String(d.getHours()).padStart(2, '0');
     const mi = String(d.getMinutes()).padStart(2, '0');
     return `${dd}.${mm} ${hh}:${mi}`;

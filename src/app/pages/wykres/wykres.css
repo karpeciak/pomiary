@@ -7,6 +7,13 @@ ion-segment {
   margin-bottom: 16px;
 }
 
+/* pasek zakresu czasu - węższy i mniej wyrazisty niż wybór parametrów */
+ion-segment.zakres {
+  margin-bottom: 8px;
+  --background: transparent;
+  font-size: 0.85rem;
+}
+
 .wykres {
   position: relative;
   height: 380px;

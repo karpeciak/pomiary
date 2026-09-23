@@ -9,6 +9,15 @@
 
 <ion-content class="ion-padding">
   <div class="kontener">
+    <!-- zakres czasu -->
+    <ion-segment class="zakres" [value]="zakres()" (ionChange)="zmienZakres($event.detail.value)" scrollable>
+      @for (z of zakresy; track z.id) {
+        <ion-segment-button [value]="z.id">
+          <ion-label>{{ z.nazwa }}</ion-label>
+        </ion-segment-button>
+      }
+    </ion-segment>
+
     <ion-segment [value]="grupa()" (ionChange)="zmienGrupe($event.detail.value)" scrollable>
       @for (g of grupy; track g.id) {
         <ion-segment-button [value]="g.id">
@@ -21,6 +30,11 @@
       <div class="pusto"><ion-spinner></ion-spinner></div>
     } @else if (pomiary().length === 0) {
       <div class="pusto">Brak pomiarów – zapisz pierwszy, aby zobaczyć wykres.</div>
+    } @else if (wybrane().length === 0) {
+      <div class="pusto">
+        Brak pomiarów w wybranym zakresie.<br />
+        Wszystkich pomiarów: {{ pomiary().length }} – wybierz szerszy zakres.
+      </div>
     } @else {
       <div class="wykres">
         <canvas baseChart type="line" [data]="dane()" [options]="opcje"></canvas>
@@ -42,7 +56,9 @@
           }
         </div>
       }
-      <p class="liczba">Łącznie pomiarów: {{ pomiary().length }}</p>
+      <p class="liczba">
+        Pomiarów w zakresie: {{ wybrane().length }} · łącznie: {{ pomiary().length }}
+      </p>
     }
   </div>
 </ion-content>

@@ -83,7 +83,7 @@
         } @else {
           <!-- telefon: każdy pomiar jako karta -->
           <div class="karty">
-            @for (m of pomiary(); track m.Id) {
+            @for (m of widoczne(); track m.Id) {
               <div class="karta">
                 <div class="karta-data">
                   <span>{{ m.Data | date: 'dd.MM.yyyy' }}</span>
@@ -124,7 +124,7 @@
                 </tr>
               </thead>
               <tbody>
-                @for (m of pomiary(); track m.Id) {
+                @for (m of widoczne(); track m.Id) {
                   <tr>
                     <td class="data">{{ m.Data | date: 'dd.MM.yyyy HH:mm' }}</td>
                     @for (p of parametry; track p.klucz) {
@@ -140,10 +140,20 @@
               </tbody>
             </table>
           </div>
+
+          <div class="podsumowanie">
+            Pokazano {{ widoczne().length }} z {{ pomiary().length }} pomiarów
+          </div>
         }
       } @else {
         <div class="pusto">Wybierz osobę z listy, aby zobaczyć jej pomiary.</div>
       }
     </section>
   </div>
+
+  <!-- kolejne pomiary doczytują się przy przewijaniu w dół -->
+  <ion-infinite-scroll [disabled]="!jestWiecej()" (ionInfinite)="doczytaj($event)">
+    <ion-infinite-scroll-content loadingSpinner="crescent" loadingText="Wczytywanie pomiarów...">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
 </ion-content>

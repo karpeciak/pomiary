@@ -1,9 +1,10 @@
 import { DatePipe } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import {
-  AlertController, IonBadge, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonItem, IonLabel, IonList,
-  IonSegment, IonSegmentButton, IonSelect, IonSelectOption, IonSpinner, IonTitle, IonToolbar, ToastController,
+  AlertController, InfiniteScrollCustomEvent, IonBadge, IonButton, IonButtons, IonContent, IonHeader,
+  IonIcon, IonInfiniteScroll, IonInfiniteScrollContent, IonItem, IonLabel, IonList, IonSegment,
+  IonSegmentButton, IonSelect, IonSelectOption, IonSpinner, IonTitle, IonToolbar, ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
@@ -17,6 +18,7 @@ import { ApiService, Komorka, OsobaWKomorce, Pomiar, komunikatBledu } from '../.
   imports: [
     DatePipe, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, IonContent,
     IonSegment, IonSegmentButton, IonLabel, IonBadge, IonList, IonItem, IonSpinner, IonSelect, IonSelectOption,
+    IonInfiniteScroll, IonInfiniteScrollContent,
   ],
   templateUrl: './admin.html',
   styleUrl: './admin.css',
@@ -40,6 +42,12 @@ export class AdminPage {
   readonly osoba = signal<OsobaWKomorce | null>(null);
   readonly pomiary = signal<Pomiar[]>([]);
   readonly ladujePomiary = signal(false);
+
+  // lista pomiarów doczytywana partiami przy przewijaniu
+  private readonly PORCJA = 25;
+  private readonly limit = signal(this.PORCJA);
+  readonly widoczne = computed(() => this.pomiary().slice(0, this.limit()));
+  readonly jestWiecej = computed(() => this.limit() < this.pomiary().length);
 
   constructor() {
     addIcons({ logOutOutline, statsChartOutline, chevronForwardOutline, personOutline, trashOutline });
@@ -67,6 +75,7 @@ export class AdminPage {
 
   wybierzOsobe(o: OsobaWKomorce): void {
     this.osoba.set(o);
+    this.limit.set(this.PORCJA);
     this.ladujePomiary.set(true);
     this.api.getPomiary(o.Id).subscribe({
       next: (p) => {
@@ -75,6 +84,12 @@ export class AdminPage {
       },
       error: () => this.ladujePomiary.set(false),
     });
+  }
+
+  /** Doczytuje kolejną porcję pomiarów po dojechaniu do dołu listy. */
+  async doczytaj(e: InfiniteScrollCustomEvent): Promise<void> {
+    this.limit.update((n) => n + this.PORCJA);
+    await e.target.complete();
   }
 
   wykres(): void {
