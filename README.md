@@ -1,7 +1,9 @@
 # Pomiary Wysiłkowe
 
-Aplikacja do rejestrowania parametrów fizjologicznych podczas wysiłku.
+Aplikacja do monitorowania obciążenia treningowego, regeneracji i gotowości zawodnika.
 Stos: **Angular 22 + Ionic 9** (frontend) → **Node.js + Express** (`wf-api/`) → **SQL Server** (`PomiaryDB`).
+
+**Pełna dokumentacja: [DOKUMENTACJA.md](DOKUMENTACJA.md)** – działanie aplikacji, baza, API, uruchomienie, obsługa i rozwiązywanie problemów.
 
 ## Uruchomienie
 
