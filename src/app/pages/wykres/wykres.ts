@@ -7,14 +7,27 @@ import {
 } from '@ionic/angular';
 import { ChartConfiguration } from 'chart.js';
 import { BaseChartDirective, provideCharts, withDefaultRegisterables } from 'ng2-charts';
-import { PARAMETRY, Parametr } from '../../parametry';
+import { PARAMETRY, WYLICZANE } from '../../parametry';
 import { ApiService, Pomiar, Uzytkownik } from '../../services/api.service';
 
 interface Grupa {
   id: string;
   nazwa: string;
-  kolumny: Parametr['kolumna'][];
+  kolumny: (keyof Pomiar)[];
 }
+
+/** Parametry i wskaźniki wyliczane razem - wykres rysuje jedne i drugie. */
+interface Seria {
+  kolumna: keyof Pomiar;
+  nazwa: string;
+  jednostka: string;
+  kolor: string;
+}
+
+const SERIE: Seria[] = [
+  ...PARAMETRY.map((p) => ({ kolumna: p.kolumna, nazwa: p.nazwa, jednostka: p.jednostka, kolor: p.kolor })),
+  ...WYLICZANE.map((w) => ({ kolumna: w.kolumna, nazwa: w.nazwa, jednostka: w.jednostka, kolor: w.kolor })),
+];
 
 interface Zakres {
   id: string;
@@ -31,11 +44,11 @@ const ZAKRESY: Zakres[] = [
 ];
 
 const GRUPY: Grupa[] = [
-  { id: 'wszystkie', nazwa: 'Wszystkie', kolumny: ['TetnoSpoczynek', 'TetnoWysilek', 'CisnienieSkurcz', 'CisnienieRozkurcz', 'SpO2'] },
-  { id: 'tetno', nazwa: 'Tętno', kolumny: ['TetnoSpoczynek', 'TetnoWysilek'] },
-  { id: 'cisnienie', nazwa: 'Ciśnienie', kolumny: ['CisnienieSkurcz', 'CisnienieRozkurcz'] },
-  { id: 'spo2', nazwa: 'SpO₂', kolumny: ['SpO2'] },
-  { id: 'wysilek', nazwa: 'Czas i RPE', kolumny: ['CzasMin', 'RPE'] },
+  { id: 'obciazenie', nazwa: 'Obciążenie (AU)', kolumny: ['ObciazenieTreningowe', 'ObciazeniePraca'] },
+  { id: 'czas', nazwa: 'Czas (min)', kolumny: ['CzasTreningu', 'CzasPracy'] },
+  { id: 'rpe', nazwa: 'RPE', kolumny: ['RpeTreningu', 'RpePracy'] },
+  { id: 'regeneracja', nazwa: 'Sen i tętno', kolumny: ['Sen', 'TetnoPoranne'] },
+  { id: 'gotowosc', nazwa: 'Gotowość', kolumny: ['ChecDoTreningu', 'Tapping'] },
 ];
 
 @Component({
@@ -57,7 +70,7 @@ export class WykresPage {
   readonly userId = input.required<string>();
 
   readonly grupy = GRUPY;
-  readonly grupa = signal('wszystkie');
+  readonly grupa = signal('obciazenie');
   readonly zakresy = ZAKRESY;
   readonly zakres = signal('miesiac');
   readonly pomiary = signal<Pomiar[]>([]);
@@ -79,7 +92,7 @@ export class WykresPage {
   readonly ostatni = computed(() => this.wybrane().at(-1) ?? null);
   readonly parametryGrupy = computed(() => {
     const g = GRUPY.find((x) => x.id === this.grupa())!;
-    return PARAMETRY.filter((p) => g.kolumny.includes(p.kolumna));
+    return g.kolumny.map((k) => SERIE.find((s) => s.kolumna === k)!);
   });
 
   readonly dane = computed<ChartConfiguration<'line'>['data']>(() => {
@@ -89,7 +102,7 @@ export class WykresPage {
       labels: lista.map((p) => this.etykieta(p.Data, !zDniem)),
       datasets: this.parametryGrupy().map((p) => ({
         label: `${p.nazwa} (${p.jednostka})`,
-        data: lista.map((m) => m[p.kolumna]),
+        data: lista.map((m) => m[p.kolumna] as number | null),
         borderColor: p.kolor,
         backgroundColor: p.kolor,
         pointRadius: lista.length > 60 ? 0 : lista.length > 30 ? 2 : 4,

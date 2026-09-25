@@ -1,6 +1,6 @@
 <ion-header>
   <ion-toolbar color="primary">
-    <ion-title>Moje pomiary</ion-title>
+    <ion-title>Mój wpis</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="wyloguj()" title="Wyloguj">
         <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
@@ -16,15 +16,15 @@
       <div class="data-opis"><span class="dzien-tyg">{{ dzis | date: 'EEEE' }}</span> · {{ user()?.Pseudonim }}</div>
     </div>
 
-    <!-- jeden pomiar na dzień -->
+    <!-- jeden wpis na dzień -->
     @if (dzisiejszy(); as d) {
       <div class="status zapisany">
         <ion-icon name="checkmark-circle-outline"></ion-icon>
         <div class="status-tekst">
-          <b>Dzisiejszy pomiar zapisany o {{ d.Data | date: 'HH:mm' }}</b>
-          <span>Możesz poprawić wartości – ponowny zapis nadpisze pomiar.</span>
+          <b>Dzisiejszy wpis zapisany o {{ d.Data | date: 'HH:mm' }}</b>
+          <span>Możesz poprawić wartości – ponowny zapis nadpisze wpis.</span>
         </div>
-        <ion-button fill="clear" color="danger" size="small" (click)="usun()" title="Usuń dzisiejszy pomiar">
+        <ion-button fill="clear" color="danger" size="small" (click)="usun()" title="Usuń dzisiejszy wpis">
           <ion-icon slot="start" name="trash-outline"></ion-icon>
           Usuń
         </ion-button>
@@ -33,48 +33,207 @@
       <div class="status">
         <ion-icon name="information-circle-outline"></ion-icon>
         <div class="status-tekst">
-          <b>Brak dzisiejszego pomiaru</b>
-          <span>Wpisz wartości i zapisz – jeden pomiar na dzień.</span>
+          <b>Brak dzisiejszego wpisu</b>
+          <span>Wypełnij, co możesz – jeden wpis na dzień.</span>
         </div>
       </div>
     }
 
-    <table class="tabela">
-      <thead>
-        <tr>
-          <th>Parametr</th>
-          <th class="kol-wartosc">Wartość</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (p of parametry; track p.klucz) {
-          <tr [class.blad]="bledy()[p.klucz]">
-            <td>
-              <div class="nazwa">{{ p.nazwa }}</div>
-              <div class="zakres">{{ p.jednostka === '6–20' ? 'skala' : p.jednostka }} · {{ p.min }}–{{ p.max }}</div>
-            </td>
-            <td class="kol-wartosc">
-              <ion-input
-                type="number"
-                inputmode="numeric"
-                fill="outline"
-                [min]="p.min"
-                [max]="p.max"
-                [placeholder]="p.jednostka === '6–20' ? '6–20' : p.jednostka"
-                [ngModel]="wartosci()[p.klucz]"
-                (ngModelChange)="ustaw(p.klucz, $event)"
-                (keyup.enter)="zapisz()"
-                [attr.aria-label]="p.nazwa"
-              ></ion-input>
-              @if (bledy()[p.klucz]; as b) {
-                <div class="komunikat">{{ b }}</div>
-              }
-            </td>
-          </tr>
-        }
-      </tbody>
-    </table>
+    @if (bledy()['doba']; as b) {
+      <div class="blad-doby">{{ b }}</div>
+    }
 
+    <!-- OBCIĄŻENIE: trening i praca -->
+    @for (sekcja of sekcjeObciazenia(); track sekcja.tytul) {
+      <section class="sekcja">
+        <h2>{{ sekcja.tytul }}</h2>
+
+        <!-- czas z przełącznikiem h / min -->
+        <div class="pole">
+          <label [attr.for]="sekcja.czas.klucz">{{ sekcja.czas.nazwa }}</label>
+          <div class="wiersz">
+            <ion-input
+              type="number"
+              inputmode="decimal"
+              fill="outline"
+              placeholder="0"
+              [attr.aria-label]="sekcja.czas.nazwa"
+              [ngModel]="czasWJednostce(sekcja.czasKlucz)"
+              (ngModelChange)="ustawCzas(sekcja.czasKlucz, $event)"
+            ></ion-input>
+            <div class="jednostki">
+              @for (j of ['h', 'min']; track j) {
+                <button
+                  type="button"
+                  [class.wybrany]="jednostka()[sekcja.czasKlucz] === j"
+                  (click)="zmienJednostke(sekcja.czasKlucz, j === 'h' ? 'h' : 'min')"
+                >{{ j }}</button>
+              }
+            </div>
+          </div>
+          <div class="pod-polem">
+            @if (bledy()[sekcja.czas.klucz]; as b) {
+              <span class="komunikat">{{ b }}</span>
+            } @else if (wartosci()[sekcja.czas.klucz] !== null) {
+              <span>{{ minutyNaTekst(wartosci()[sekcja.czas.klucz]) }}</span>
+            } @else {
+              <span>{{ sekcja.czas.opis }}</span>
+            }
+          </div>
+        </div>
+
+        <!-- RPE 0-10 -->
+        <div class="pole">
+          <label>{{ sekcja.rpe.nazwa }}</label>
+          <div class="skala">
+            @for (v of rpeWartosci; track v) {
+              <button
+                type="button"
+                class="skala-przycisk"
+                [class.wybrany]="wartosci()[sekcja.rpe.klucz] === v"
+                [style.--akcent]="sekcja.rpe.kolor"
+                [title]="v + ' – ' + rpeOpisy[v]"
+                (click)="przelacz(sekcja.rpe.klucz, v)"
+              >{{ v }}</button>
+            }
+          </div>
+          <div class="pod-polem">
+            @if (sekcja.opisRpe) {
+              <span>{{ sekcja.opisRpe }}</span>
+            } @else {
+              <span>{{ sekcja.rpe.opis }}</span>
+            }
+          </div>
+        </div>
+
+        <!-- wyliczane obciążenie (sRPE) -->
+        <div class="wynik" [style.border-left-color]="sekcja.wynik.kolor">
+          <span class="wynik-nazwa">{{ sekcja.wynik.nazwa }}</span>
+          <span class="wynik-wartosc">
+            @if (sekcja.wynik.wartosc !== null) {
+              {{ sekcja.wynik.wartosc }} <small>{{ sekcja.wynik.jednostka }}</small>
+            } @else {
+              <small>uzupełnij czas i RPE</small>
+            }
+          </span>
+        </div>
+      </section>
+    }
+
+    <!-- REGENERACJA -->
+    <section class="sekcja">
+      <h2>Regeneracja</h2>
+
+      <div class="pole">
+        <label>{{ parametrSen.nazwa }}</label>
+        <div class="wiersz">
+          <ion-input
+            type="number"
+            inputmode="decimal"
+            fill="outline"
+            placeholder="0"
+            step="0.25"
+            [min]="parametrSen.min"
+            [max]="parametrSen.max"
+            [attr.aria-label]="parametrSen.nazwa"
+            [ngModel]="wartosci()['sen']"
+            (ngModelChange)="ustawSen($event)"
+          ></ion-input>
+          <div class="jednostki"><span class="stala-jednostka">h</span></div>
+        </div>
+        <div class="pod-polem">
+          @if (bledy()['sen']; as b) {
+            <span class="komunikat">{{ b }}</span>
+          } @else if (opisSnu(); as o) {
+            <span>{{ o }}</span>
+          } @else {
+            <span>{{ parametrSen.opis }} · krok 0,25 h (15 min)</span>
+          }
+        </div>
+      </div>
+
+      <div class="pole">
+        <label>{{ parametrTetno.nazwa }}</label>
+        <div class="wiersz">
+          <ion-input
+            type="number"
+            inputmode="numeric"
+            fill="outline"
+            placeholder="0"
+            [min]="parametrTetno.min"
+            [max]="parametrTetno.max"
+            [attr.aria-label]="parametrTetno.nazwa"
+            [ngModel]="wartosci()['tetnoPoranne']"
+            (ngModelChange)="ustawLiczbe('tetnoPoranne', $event)"
+          ></ion-input>
+          <div class="jednostki"><span class="stala-jednostka">ud./min</span></div>
+        </div>
+        <div class="pod-polem">
+          @if (bledy()['tetnoPoranne']; as b) {
+            <span class="komunikat">{{ b }}</span>
+          } @else {
+            <span>{{ parametrTetno.opis }} · zakres {{ parametrTetno.min }}–{{ parametrTetno.max }}</span>
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- GOTOWOŚĆ -->
+    <section class="sekcja">
+      <h2>Gotowość</h2>
+
+      <div class="pole">
+        <label>{{ parametrChec.nazwa }}</label>
+        <div class="buzki">
+          @for (b of buzki; track b.wartosc) {
+            <button
+              type="button"
+              class="buzka"
+              [class.wybrany]="wartosci()['checDoTreningu'] === b.wartosc"
+              [title]="b.opis"
+              (click)="przelacz('checDoTreningu', b.wartosc)"
+            >
+              <span class="emoji">{{ b.emoji }}</span>
+              <span class="podpis">{{ b.wartosc }}</span>
+            </button>
+          }
+        </div>
+        <div class="pod-polem">
+          @if (opisCheci(); as o) {
+            <span>{{ o }}</span>
+          } @else {
+            <span>{{ parametrChec.opis }}</span>
+          }
+        </div>
+      </div>
+
+      <div class="pole">
+        <label>{{ parametrTapping.nazwa }}</label>
+        @if (tappingTrwa()) {
+          <button type="button" class="tapping-pole trwa" (pointerdown)="stuknij()">
+            <span class="tapping-licznik">{{ tappingStukniecia() }}</span>
+            <span class="tapping-opis">stukaj jak najszybciej · {{ tappingPozostalo() }} s</span>
+          </button>
+        } @else {
+          <button type="button" class="tapping-pole" (click)="startTapping()">
+            @if (wartosci()['tapping'] !== null) {
+              <span class="tapping-licznik">{{ wartosci()['tapping'] }}</span>
+              <span class="tapping-opis">stuknięć · dotknij, aby powtórzyć test</span>
+            } @else {
+              <ion-icon name="timer-outline"></ion-icon>
+              <span class="tapping-opis">Rozpocznij test ({{ tappingSekund }} s)</span>
+            }
+          </button>
+        }
+        <div class="pod-polem">
+          @if (bledy()['tapping']; as b) {
+            <span class="komunikat">{{ b }}</span>
+          } @else {
+            <span>{{ parametrTapping.opis }} – liczy się każde dotknięcie pola</span>
+          }
+        </div>
+      </div>
+    </section>
   </div>
 </ion-content>
 

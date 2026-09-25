@@ -93,12 +93,12 @@
                   </ion-button>
                 </div>
                 <div class="karta-siatka">
-                  @for (p of parametry; track p.klucz) {
+                  @for (p of kolumny; track p.kolumna) {
                     <div class="pole" [style.border-left-color]="p.kolor" [class.puste]="m[p.kolumna] === null">
                       <div class="pole-nazwa">{{ p.skrot }}</div>
                       <div class="pole-wartosc">
                         {{ m[p.kolumna] ?? '–' }}
-                        @if (m[p.kolumna] !== null && p.jednostka !== '6–20') {
+                        @if (m[p.kolumna] !== null) {
                           <small>{{ p.jednostka }}</small>
                         }
                       </div>
@@ -115,9 +115,9 @@
               <thead>
                 <tr>
                   <th>Data</th>
-                  @for (p of parametry; track p.klucz) {
+                  @for (p of kolumny; track p.kolumna) {
                     <th class="num" [title]="p.nazwa">
-                      {{ p.skrot }}<br /><small>{{ p.jednostka === '6–20' ? '' : p.jednostka }}</small>
+                      {{ p.skrot }}<br /><small>{{ p.jednostka }}</small>
                     </th>
                   }
                   <th></th>
@@ -127,7 +127,7 @@
                 @for (m of widoczne(); track m.Id) {
                   <tr>
                     <td class="data">{{ m.Data | date: 'dd.MM.yyyy HH:mm' }}</td>
-                    @for (p of parametry; track p.klucz) {
+                    @for (p of kolumny; track p.kolumna) {
                       <td class="num">{{ m[p.kolumna] ?? '–' }}</td>
                     }
                     <td class="akcja">

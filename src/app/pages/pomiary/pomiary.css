@@ -22,58 +22,7 @@
   text-transform: capitalize;
 }
 
-.tabela {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.tabela th {
-  text-align: left;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--ion-color-medium);
-  padding: 0 8px 8px;
-  border-bottom: 1px solid var(--ion-background-color-step-150, #ddd);
-}
-
-.tabela td {
-  padding: 10px 8px;
-  border-bottom: 1px solid var(--ion-background-color-step-100, #eee);
-  vertical-align: middle;
-}
-
-.kol-wartosc {
-  width: 38%;
-  min-width: 120px;
-}
-
-.nazwa {
-  font-weight: 600;
-}
-
-.zakres {
-  font-size: 0.8rem;
-  color: var(--ion-color-medium);
-}
-
-.tabela ion-input {
-  --padding-start: 12px;
-  min-height: 44px;
-  font-variant-numeric: tabular-nums;
-}
-
-tr.blad ion-input {
-  --border-color: var(--ion-color-danger);
-  --highlight-color: var(--ion-color-danger);
-}
-
-.komunikat {
-  font-size: 0.75rem;
-  color: var(--ion-color-danger);
-  margin-top: 4px;
-}
-
+/* pasek stanu dzisiejszego wpisu */
 .status {
   display: flex;
   align-items: center;
@@ -110,6 +59,233 @@ tr.blad ion-input {
   color: var(--ion-color-medium);
 }
 
+.blad-doby {
+  border: 1px solid var(--ion-color-danger);
+  color: var(--ion-color-danger);
+  border-radius: 10px;
+  padding: 8px 12px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}
+
+/* sekcje formularza */
+.sekcja {
+  border: 1px solid var(--ion-background-color-step-150, #ddd);
+  border-radius: 12px;
+  padding: 12px 14px 14px;
+  margin-bottom: 16px;
+}
+
+.sekcja h2 {
+  margin: 0 0 12px;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.pole {
+  margin-bottom: 14px;
+}
+
+.pole > label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.pod-polem {
+  font-size: 0.78rem;
+  color: var(--ion-color-medium);
+  margin-top: 4px;
+  min-height: 1.1em;
+}
+
+.komunikat {
+  color: var(--ion-color-danger);
+}
+
+/* pole liczbowe z jednostką */
+.wiersz {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wiersz ion-input {
+  flex: 1;
+  min-height: 44px;
+  --padding-start: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.jednostki {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.jednostki button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid var(--ion-background-color-step-200, #ccc);
+  background: transparent;
+  color: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.jednostki button.wybrany {
+  background: var(--ion-color-primary);
+  border-color: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast);
+  font-weight: 600;
+}
+
+.stala-jednostka {
+  font-size: 0.85rem;
+  color: var(--ion-color-medium);
+  min-width: 44px;
+}
+
+/* skala RPE 0-10 */
+.skala {
+  display: grid;
+  grid-template-columns: repeat(11, 1fr);
+  gap: 4px;
+}
+
+.skala-przycisk {
+  min-height: 42px;
+  border-radius: 8px;
+  border: 1px solid var(--ion-background-color-step-200, #ccc);
+  background: transparent;
+  color: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.skala-przycisk.wybrany {
+  background: var(--akcent, var(--ion-color-primary));
+  border-color: var(--akcent, var(--ion-color-primary));
+  color: #fff;
+}
+
+/* wynik sRPE */
+.wynik {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  border-left: 4px solid;
+  border-radius: 8px;
+  background: var(--ion-background-color-step-50, #f6f6f6);
+  padding: 8px 12px;
+}
+
+.wynik-nazwa {
+  font-size: 0.85rem;
+  color: var(--ion-color-medium);
+}
+
+.wynik-wartosc {
+  font-size: 1.3rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.wynik-wartosc small {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--ion-color-medium);
+}
+
+/* buźki 1-5 */
+.buzki {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+
+.buzka {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 0 6px;
+  border-radius: 10px;
+  border: 1px solid var(--ion-background-color-step-200, #ccc);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.buzka .emoji {
+  font-size: 1.7rem;
+  line-height: 1;
+  filter: grayscale(0.6);
+}
+
+.buzka .podpis {
+  font-size: 0.72rem;
+  color: var(--ion-color-medium);
+}
+
+.buzka.wybrany {
+  border-color: var(--ion-color-success);
+  background: color-mix(in srgb, var(--ion-color-success) 15%, transparent);
+}
+
+.buzka.wybrany .emoji {
+  filter: none;
+}
+
+/* tapping test */
+.tapping-pole {
+  width: 100%;
+  min-height: 96px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 12px;
+  border: 2px dashed var(--ion-background-color-step-200, #ccc);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.tapping-pole ion-icon {
+  font-size: 26px;
+  color: var(--ion-color-medium);
+}
+
+.tapping-pole.trwa {
+  border-style: solid;
+  border-color: var(--ion-color-danger);
+  background: color-mix(in srgb, var(--ion-color-danger) 12%, transparent);
+}
+
+.tapping-licznik {
+  font-size: 2.2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.tapping-opis {
+  font-size: 0.8rem;
+  color: var(--ion-color-medium);
+}
+
+/* stopka */
 .akcje {
   display: flex;
   gap: 12px;

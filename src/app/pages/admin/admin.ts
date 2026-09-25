@@ -10,7 +10,7 @@ import { addIcons } from 'ionicons';
 import {
   chevronForwardOutline, logOutOutline, personOutline, statsChartOutline, trashOutline,
 } from 'ionicons/icons';
-import { PARAMETRY } from '../../parametry';
+import { PARAMETRY, WYLICZANE } from '../../parametry';
 import { ApiService, Komorka, OsobaWKomorce, Pomiar, komunikatBledu } from '../../services/api.service';
 
 @Component({
@@ -29,7 +29,11 @@ export class AdminPage {
   private alert = inject(AlertController);
   private toast = inject(ToastController);
 
-  readonly parametry = PARAMETRY;
+  /** Kolumny tabeli: parametry wpisywane + wskaźniki wyliczane (sRPE). */
+  readonly kolumny = [
+    ...PARAMETRY.map((p) => ({ kolumna: p.kolumna, nazwa: p.nazwa, skrot: p.skrot, jednostka: p.jednostka, kolor: p.kolor })),
+    ...WYLICZANE.map((w) => ({ kolumna: w.kolumna, nazwa: w.nazwa, skrot: w.skrot, jednostka: w.jednostka, kolor: w.kolor })),
+  ];
   readonly user = this.api.user;
 
   // krok 1: komórki

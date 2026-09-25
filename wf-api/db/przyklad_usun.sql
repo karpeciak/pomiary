@@ -20,6 +20,10 @@ INSERT INTO @przyklad VALUES
 DELETE p FROM Pomiary p
 JOIN Uzytkownicy u ON u.Id = p.UzytkownikId
 JOIN @przyklad x ON x.Pseudonim = u.Pseudonim;
-DELETE u FROM Uzytkownicy u JOIN @przyklad x ON x.Pseudonim = u.Pseudonim;
-PRINT 'Usunięto dane przykładowe.';
+
+-- konta usuwamy tylko wtedy, gdy nie trzyma ich archiwum starych pomiarów
+DELETE u FROM Uzytkownicy u
+JOIN @przyklad x ON x.Pseudonim = u.Pseudonim
+WHERE NOT EXISTS (SELECT 1 FROM PomiaryArchiwum a WHERE a.UzytkownikId = u.Id);
+PRINT 'Usunięto dane przykładowe (konta z archiwalnymi pomiarami zostały zachowane).';
 GO

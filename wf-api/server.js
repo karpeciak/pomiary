@@ -43,25 +43,31 @@ const openapi = YAML.parse(fs.readFileSync(path.join(__dirname, 'openapi.yaml'),
 app.get('/openapi.json', (req, res) => res.json(openapi));
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openapi, { customSiteTitle: 'Pomiary Wysiłkowe – API' }));
 
-// msnodesqlv8 zwraca INT jako string - zamieniamy na liczby
-const INT_COLS = ['Id', 'KomorkaId', 'UzytkownikId', 'TetnoSpoczynek', 'TetnoWysilek',
-  'CisnienieSkurcz', 'CisnienieRozkurcz', 'SpO2', 'CzasMin', 'RPE', 'LiczbaOsob'];
+// msnodesqlv8 zwraca liczby jako string - zamieniamy na typ liczbowy
+const LICZBY = ['Id', 'KomorkaId', 'UzytkownikId', 'LiczbaOsob', 'LiczbaPomiarow',
+  'CzasTreningu', 'RpeTreningu', 'CzasPracy', 'RpePracy', 'TetnoPoranne', 'Sen',
+  'ChecDoTreningu', 'Tapping', 'ObciazenieTreningowe', 'ObciazeniePraca'];
 const norm = (rows) => rows.map((row) => {
   const o = { ...row };
-  for (const k of INT_COLS) if (o[k] != null) o[k] = Number(o[k]);
+  for (const k of LICZBY) if (o[k] != null) o[k] = Number(o[k]);
   return o;
 });
 
-// Zakresy walidacji pomiarów: [kolumna, pole w JSON, min, max, etykieta]
+// Parametry pomiaru: [kolumna, pole w JSON, min, max, krok, etykieta]
+// krok 1 = liczba całkowita, 0.25 = wielokrotność 15 minut (sen)
 const ZAKRESY = [
-  ['TetnoSpoczynek', 'tetnoSpoczynek', 30, 220, 'Tętno spoczynkowe'],
-  ['TetnoWysilek', 'tetnoWysilek', 30, 220, 'Tętno po wysiłku'],
-  ['CisnienieSkurcz', 'cisnienieSkurcz', 70, 250, 'Ciśnienie skurczowe'],
-  ['CisnienieRozkurcz', 'cisnienieRozkurcz', 40, 150, 'Ciśnienie rozkurczowe'],
-  ['SpO2', 'spo2', 70, 100, 'SpO₂'],
-  ['CzasMin', 'czasMin', 1, 600, 'Czas wysiłku'],
-  ['RPE', 'rpe', 6, 20, 'RPE'],
+  ['CzasTreningu', 'czasTreningu', 0, 1440, 1, 'Czas treningu (min)'],
+  ['RpeTreningu', 'rpeTreningu', 0, 10, 1, 'RPE treningu'],
+  ['CzasPracy', 'czasPracy', 0, 1440, 1, 'Czas pracy (min)'],
+  ['RpePracy', 'rpePracy', 0, 10, 1, 'RPE pracy'],
+  ['TetnoPoranne', 'tetnoPoranne', 20, 120, 1, 'Tętno po przebudzeniu'],
+  ['Sen', 'sen', 0, 12, 0.25, 'Ilość snu (h)'],
+  ['ChecDoTreningu', 'checDoTreningu', 1, 5, 1, 'Chęć do treningu'],
+  ['Tapping', 'tapping', 0, 500, 1, 'Tapping test'],
 ];
+
+// Obciążenia (sRPE) liczy baza jako kolumny wyliczane - API ich nie zapisuje
+const DOBA_MIN = 1440;
 
 const wrap = (fn) => (req, res) =>
   fn(req, res).catch((e) => {
@@ -121,20 +127,36 @@ app.post('/api/pomiary', wrap(async (req, res) => {
   if (!Number.isInteger(uid)) return res.status(400).json({ error: 'Brak użytkownika.' });
 
   const rq = (await pool).request().input('u', sql.Int, uid);
+  const wartosci = {};
   let wypelnione = 0;
-  for (const [col, key, min, max, label] of ZAKRESY) {
+  for (const [col, key, min, max, krok, label] of ZAKRESY) {
     const raw = m[key];
     let v = null;
     if (raw !== null && raw !== undefined && raw !== '') {
       v = Number(raw);
-      if (!Number.isInteger(v) || v < min || v > max) {
+      if (Number.isNaN(v) || v < min || v > max) {
         return res.status(400).json({ error: `${label}: dozwolony zakres ${min}–${max}.` });
+      }
+      // wielokrotność kroku (1 = liczba całkowita, 0.25 = kwadrans snu)
+      if (Math.abs(Math.round(v / krok) - v / krok) > 1e-9) {
+        return res.status(400).json({
+          error: krok === 1 ? `${label}: podaj liczbę całkowitą.` : `${label}: dozwolony krok co ${krok}.`,
+        });
       }
       wypelnione++;
     }
-    rq.input(col, sql.Int, v);
+    wartosci[key] = v;
+    rq.input(col, krok === 1 ? sql.Int : sql.Decimal(4, 2), v);
   }
-  if (wypelnione === 0) return res.status(400).json({ error: 'Wpisz przynajmniej jeden pomiar.' });
+  if (wypelnione === 0) return res.status(400).json({ error: 'Wpisz przynajmniej jedną wartość.' });
+
+  // doba ma 24 h - trening i praca razem nie mogą jej przekroczyć
+  const razem = (wartosci.czasTreningu ?? 0) + (wartosci.czasPracy ?? 0);
+  if (razem > DOBA_MIN) {
+    return res.status(400).json({
+      error: `Czas treningu i pracy razem to ${razem} min, a doba ma ${DOBA_MIN} min.`,
+    });
+  }
 
   // Jeden pomiar dziennie: jeśli dziś już jest pomiar, nadpisujemy go (i usuwamy ewentualne dzisiejsze duplikaty)
   const cols = ZAKRESY.map((z) => z[0]);

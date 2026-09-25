@@ -28,24 +28,37 @@ export interface Pomiar {
   Id: number;
   UzytkownikId: number;
   Data: string;
-  TetnoSpoczynek: number | null;
-  TetnoWysilek: number | null;
-  CisnienieSkurcz: number | null;
-  CisnienieRozkurcz: number | null;
-  SpO2: number | null;
-  CzasMin: number | null;
-  RPE: number | null;
+  /** minuty */
+  CzasTreningu: number | null;
+  /** skala Borga CR-10 */
+  RpeTreningu: number | null;
+  /** minuty */
+  CzasPracy: number | null;
+  RpePracy: number | null;
+  /** ud./min, pomiar po przebudzeniu */
+  TetnoPoranne: number | null;
+  /** godziny, krok 0,25 */
+  Sen: number | null;
+  /** 1-5 (buźki) */
+  ChecDoTreningu: number | null;
+  /** liczba stuknięć w 10 s */
+  Tapping: number | null;
+  /** sRPE: CzasTreningu × RpeTreningu, liczone przez bazę */
+  ObciazenieTreningowe: number | null;
+  /** sRPE: CzasPracy × RpePracy, liczone przez bazę */
+  ObciazeniePraca: number | null;
 }
 
 export interface NowyPomiar {
   uzytkownikId: number;
-  tetnoSpoczynek: number | null;
-  tetnoWysilek: number | null;
-  cisnienieSkurcz: number | null;
-  cisnienieRozkurcz: number | null;
-  spo2: number | null;
-  czasMin: number | null;
-  rpe: number | null;
+  czasTreningu: number | null;
+  rpeTreningu: number | null;
+  czasPracy: number | null;
+  rpePracy: number | null;
+  tetnoPoranne: number | null;
+  sen: number | null;
+  checDoTreningu: number | null;
+  tapping: number | null;
 }
 
 /** Ostatnio używany pseudonim i komórka - do podpowiedzi na ekranie logowania. */

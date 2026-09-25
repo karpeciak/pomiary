@@ -9,7 +9,8 @@ Stos: **Angular 22 + Ionic 9** (frontend) → **Node.js + Express** (`wf-api/`) 
    API łączy się sterownikiem `msnodesqlv8` (wymaga „ODBC Driver 18 for SQL Server”).
    Inną instancję ustawisz zmienną środowiskową `DB_SERVER`.
    Dodatkowe komórki (łącznie 10) dodaje skrypt `wf-api/db/komorki.sql`.
-   Dane przykładowe (16 osób, pomiary z ostatnich 30 dni) tworzy `wf-api/db/przyklad.sql`,
+   Nowy zestaw parametrów wprowadza `wf-api/db/migracja-nowe-parametry.sql` (stare pomiary trafiają do `PomiaryArchiwum`).
+   Dane przykładowe (40 osób, wpisy z ostatnich 90 dni) tworzy `wf-api/db/przyklad.sql`,
    a usuwa `wf-api/db/przyklad_usun.sql`:
    ```bash
    sqlcmd -S "localhost\MSSQLSERVER04" -E -C -f 65001 -i wf-api/db/przyklad.sql
@@ -50,12 +51,12 @@ Na iPhonie: Safari → Udostępnij → „Do ekranu początkowego”. Na Android
 
 | Ścieżka | Zawartość |
 |---|---|
-| `wf-api/server.js` | REST API i walidacja zakresów |
+| `wf-api/server.js` | REST API, walidacja zakresów i limitu doby (24 h) |
 | `src/app/services/api.service.ts` | wywołania HTTP i zalogowany użytkownik (w `localStorage`) |
-| `src/app/parametry.ts` | lista parametrów, jednostki, zakresy i kolory |
+| `src/app/parametry.ts` | parametry wpisywane i wyliczane (sRPE), jednostki, zakresy, skale |
 | `src/app/guards.ts` | `authGuard`, `adminGuard`, `goscGuard` |
 | `src/app/pages/login` | pseudonim i komórka organizacyjna |
-| `src/app/pages/pomiary` | dzisiejsza data, tabela pomiarów, przyciski Zapisz i Wykres |
+| `src/app/pages/pomiary` | dzienny wpis: czas i RPE treningu oraz pracy, sen, tętno poranne, chęć do treningu, tapping test |
 | `src/app/pages/wykres` | wykres liniowy (Chart.js / ng2-charts), `/wykres/:userId` |
 | `src/app/pages/admin` | komórki → osoby → tabela pomiarów i wykres |
 
