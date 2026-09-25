@@ -53,6 +53,19 @@ export class AdminPage {
   readonly widoczne = computed(() => this.pomiary().slice(0, this.limit()));
   readonly jestWiecej = computed(() => this.limit() < this.pomiary().length);
 
+  /** Średnia z tapping testu wybranej osoby z ostatnich 7 dni. */
+  readonly sredniaTappingu = computed(() => {
+    const od = new Date();
+    od.setDate(od.getDate() - 6);
+    od.setHours(0, 0, 0, 0);
+    const wyniki = this.pomiary()
+      .filter((p) => new Date(p.Data) >= od)
+      .map((p) => p.Tapping)
+      .filter((v): v is number => v !== null);
+    if (wyniki.length === 0) return null;
+    return { srednia: Math.round(wyniki.reduce((a, b) => a + b, 0) / wyniki.length), liczba: wyniki.length };
+  });
+
   constructor() {
     addIcons({ logOutOutline, statsChartOutline, chevronForwardOutline, personOutline, trashOutline });
     this.api.getKomorki().subscribe((k) => {

@@ -162,6 +162,15 @@ ion-item.wybrana p {
   color: var(--ion-color-medium);
 }
 
+.srednia {
+  border-left: 4px solid var(--ion-color-primary);
+  border-radius: 8px;
+  background: var(--ion-background-color-step-50, #f6f6f6);
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+}
+
 .podsumowanie {
   padding: 12px 4px 4px;
   font-size: 0.8rem;

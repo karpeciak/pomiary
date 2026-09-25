@@ -76,6 +76,12 @@
           </ion-button>
         </div>
 
+        @if (sredniaTappingu(); as s) {
+          <div class="srednia">
+            Tapping test – średnia z 7 dni: <b>{{ s.srednia }}</b> stuknięć ({{ s.liczba }} {{ s.liczba === 1 ? 'test' : 'testy/-ów' }})
+          </div>
+        }
+
         @if (ladujePomiary()) {
           <div class="pusto"><ion-spinner></ion-spinner></div>
         } @else if (pomiary().length === 0) {

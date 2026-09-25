@@ -267,6 +267,16 @@
   color: var(--ion-color-medium);
 }
 
+/* wynik testu - nieklikalny, żeby przypadkowe stuknięcie nie kasowało pomiaru */
+.tapping-pole.wynik-testu {
+  cursor: default;
+  border-style: solid;
+}
+
+.tapping-start {
+  margin-top: 8px;
+}
+
 .tapping-pole.trwa {
   border-style: solid;
   border-color: var(--ion-color-danger);

@@ -76,6 +76,28 @@ export class PomiaryPage {
   readonly tappingPozostalo = signal(TAPPING_SEKUND);
   private tappingTimer?: ReturnType<typeof setInterval>;
 
+  /** Wszystkie wpisy użytkownika - do średnich z ostatnich dni. */
+  private readonly lista = signal<Pomiar[]>([]);
+
+  /** Średnia z tapping testu z ostatnich 7 dni (z dzisiejszym wpisem włącznie). */
+  readonly sredniaTappingu = computed(() => {
+    const od = new Date();
+    od.setDate(od.getDate() - 6);
+    od.setHours(0, 0, 0, 0);
+
+    const dzis = this.wartosci().tapping;
+    const dzisiejszyId = this.dzisiejszy()?.Id;
+    const wyniki = this.lista()
+      .filter((p) => new Date(p.Data) >= od && p.Id !== dzisiejszyId)
+      .map((p) => p.Tapping)
+      .filter((v): v is number => v !== null);
+    if (dzis !== null) wyniki.push(dzis); // bieżąca wartość z formularza
+
+    if (wyniki.length === 0) return null;
+    const suma = wyniki.reduce((a, b) => a + b, 0);
+    return { srednia: Math.round(suma / wyniki.length), liczba: wyniki.length };
+  });
+
   readonly bledy = computed(() => {
     const w = this.wartosci();
     const b: Partial<Record<Klucz | 'doba', string>> = {};
@@ -197,6 +219,7 @@ export class PomiaryPage {
 
   // --- tapping test ------------------------------------------------------
 
+  /** Start testu - osobny przycisk, żeby stuknięcie w pole wyniku niczego nie kasowało. */
   startTapping(): void {
     if (this.tappingTrwa()) return;
     this.tappingStukniecia.set(0);
@@ -303,6 +326,7 @@ export class PomiaryPage {
     const dzien = this.dzis.toDateString();
     this.api.getPomiary(u.Id).subscribe({
       next: (lista) => {
+        this.lista.set(lista);
         const d = lista.filter((p) => new Date(p.Data).toDateString() === dzien).at(-1) ?? null;
         this.dzisiejszy.set(d);
         if (d) this.wartosci.set(zPomiaru(d));

@@ -210,26 +210,34 @@
       <div class="pole">
         <label>{{ parametrTapping.nazwa }}</label>
         @if (tappingTrwa()) {
+          <!-- pole do stukania: aktywne tylko w trakcie testu -->
           <button type="button" class="tapping-pole trwa" (pointerdown)="stuknij()">
             <span class="tapping-licznik">{{ tappingStukniecia() }}</span>
             <span class="tapping-opis">stukaj jak najszybciej · {{ tappingPozostalo() }} s</span>
           </button>
         } @else {
-          <button type="button" class="tapping-pole" (click)="startTapping()">
+          <!-- wynik jest tylko do odczytu, test uruchamia osobny przycisk poniżej -->
+          <div class="tapping-pole wynik-testu">
             @if (wartosci()['tapping'] !== null) {
               <span class="tapping-licznik">{{ wartosci()['tapping'] }}</span>
-              <span class="tapping-opis">stuknięć · dotknij, aby powtórzyć test</span>
+              <span class="tapping-opis">stuknięć w {{ tappingSekund }} s</span>
             } @else {
               <ion-icon name="timer-outline"></ion-icon>
-              <span class="tapping-opis">Rozpocznij test ({{ tappingSekund }} s)</span>
+              <span class="tapping-opis">Test jeszcze niewykonany</span>
             }
-          </button>
+          </div>
+          <ion-button expand="block" fill="outline" class="tapping-start" (click)="startTapping()">
+            <ion-icon slot="start" name="timer-outline"></ion-icon>
+            {{ wartosci()['tapping'] !== null ? 'Powtórz test' : 'Rozpocznij test' }} ({{ tappingSekund }} s)
+          </ion-button>
         }
         <div class="pod-polem">
           @if (bledy()['tapping']; as b) {
             <span class="komunikat">{{ b }}</span>
+          } @else if (sredniaTappingu(); as s) {
+            <span>Średnia z 7 dni: <b>{{ s.srednia }}</b> stuknięć ({{ s.liczba }} {{ s.liczba === 1 ? 'test' : 'testy/-ów' }})</span>
           } @else {
-            <span>{{ parametrTapping.opis }} – liczy się każde dotknięcie pola</span>
+            <span>{{ parametrTapping.opis }} – po starcie stukaj w pole testu</span>
           }
         </div>
       </div>
